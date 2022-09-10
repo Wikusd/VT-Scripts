@@ -1,0 +1,49 @@
+---
+fqdn: prd-mg1.vtfs.cloud
+source_ip: 192.168.0.1
+source_port: 8080
+destination_ip: 192.168.0.2
+destination_port: 8080
+protocol: tcp
+timeout: 250
+
+  vars_prompt:
+    - name: fqdn
+      prompt: Specify the fqdn if trying to reach a webservice.
+      default: ""
+      private: no
+
+    - name: source_ip
+      prompt: Specify the source IP.
+      private: no
+    
+    - name: source_port
+      prompt: Specify the source port.
+      private: no
+
+    - name: destination_ip
+      prompt: Specify the destination IP.
+      default: ""
+      private: no
+
+    - name: destination_port
+      prompt: Specify the destination port.
+      private: no
+
+    - name: protocol
+      prompt: Please specify the protocol type(tcp/udp).
+      default: "tcp"
+      private: no
+    
+    - name: timeout
+      prompt: Specify the timeout in seconds for the connection attempt.
+      private: no
+
+    - name: filter
+      prompt: Please specify the tcpdump filter (e.g. host 10.10.10.10). For no filter just press enter
+      default: ""
+      private: no
+
+    - name: log_folder
+      prompt: Please specify the local log folder (location on remote server e.g. /var/tmp/)
+      private: no

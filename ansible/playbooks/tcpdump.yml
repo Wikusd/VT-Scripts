@@ -1,0 +1,89 @@
+# Velocity Trade
+# Network Debug Script Version: 1
+# First Release Date: 2022-09-09
+# Last Modified Date: 2022-09-12
+# Author: Wikus Du Plessis
+# Description: Run network debug tests on the remote server and retrieve logs, enable sharing of network debugging information with third parties.
+
+# Ansible Playbook
+
+- hosts: all
+
+  vars:
+      cap_file: packet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.pcap
+
+
+  vars_prompt:
+    - name: fqdn
+      prompt: Specify the fqdn if trying to reach a webservice.
+      default: ""
+      private: no
+
+    - name: source_ip
+      prompt: Specify the source IP.
+      private: no
+    
+    - name: source_port
+      prompt: Specify the source port.
+      private: no
+
+    - name: destination_ip
+      prompt: Specify the destination IP.
+      default: ""
+      private: no
+
+    - name: destination_port
+      prompt: Specify the destination port.
+      private: no
+
+    - name: protocol
+      prompt: Please specify the protocol type(tcp/udp).
+      default: "tcp"
+      private: no
+    
+    - name: timeout
+      prompt: Specify the timeout in seconds for the connection attempt.
+      private: no
+
+    - name: filter
+      prompt: Please specify the tcpdump filter (e.g. host 10.10.10.10). For no filter just press enter
+      default: ""
+      private: no
+
+    - name: log_folder
+      prompt: Please specify the local log folder (location on remote server e.g. /var/tmp/)
+      private: no
+
+    - name: duration
+      prompt: Specify the duration in seconds for the time you want to capture a tcpdump.
+      private: no
+      default: 60
+  
+  tasks:
+
+    - name: ensure_package_state
+      ansible.builtin.yum:
+        name:
+          - nginx
+          - postgresql
+          - postgresql-server
+        state: present
+
+        
+    - name: start_ping 
+      command: sudo ping {{}}
+
+    - name: start_tcpdump
+      command: sudo /usr/sbin/tcpdump -G {{ dur_in_sec }} -W 1 -i {{ interface }} -s 0 -w {{ log_folder}}/{{ cap_file }} {{ filter }}
+ 
+    - name: compress_capture_file
+      command: sudo gzip {{cap_file}} chdir={{log_folder}}/
+ 
+    - name: change_file_permission
+      command: sudo chmod 755 {{log_folder}}/{{cap_file}}.gz
+
+    - name: retrieve_logs
+      fetch: src={{log_folder}}/{{cap_file}}.gz dest=/export/tmp/ansible/ flat=yes
+
+    - name: cleanup_logs
+      command: sudo rm -rf {{log_folder}}/{{cap_file}}.gz

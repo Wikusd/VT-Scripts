@@ -16,7 +16,7 @@
       mtr_file: mtr_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
       ping_file: ping_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
       telnet_file: telnet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
-      
+    
 #Prompt for runtime configurations.
   vars_prompt:
     - name: fqdn
@@ -124,6 +124,7 @@
       command: sudo rm -rf {{log_folder}}/{{cap_file}}.gz
 
 
-# /TODO/// 
+# ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.
-# 2) Add additional troubleshooting tools to expand the scope of debug to disks, CPU and Memory consumption.
+# 2) Add additional troubleshooting tools to expand the scope of debug to disks, CPU and Memory consumption. Alternatively, create seperate jobs consisting of the following.
+#    Can be consolidated into a single work-flow for modular deployment and execution.

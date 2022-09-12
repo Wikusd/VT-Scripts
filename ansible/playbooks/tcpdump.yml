@@ -1,18 +1,23 @@
 # Velocity Trade
 # Network Debug Script Version: 1
 # First Release Date: 2022-09-09
-# Last Modified Date: 2022-09-12
+# Last Modified Date: 2022-09-15
 # Author: Wikus Du Plessis
 # Description: Run network debug tests on the remote server and retrieve logs, enable sharing of network debugging information with third parties.
 
 # Ansible Playbook
 
+#Specifying the host/inventory variables for the playbook to run on.
 - hosts: all
 
+#Initiate the different file names for logs
   vars:
       cap_file: packet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.pcap
-
-
+      mtr_file: mtr_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
+      ping_file: ping_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
+      telnet_file: telnet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
+      
+#Prompt for runtime configurations.
   vars_prompt:
     - name: fqdn
       prompt: Specify the fqdn if trying to reach a webservice.
@@ -61,6 +66,7 @@
   
   tasks:
 
+#Ensures all required network tools are installed and enabled.
     - name: ensure_package_state
       ansible.builtin.yum:
         name:
@@ -69,32 +75,42 @@
           - mtr
           - ping
           - telnet
+          - curl
 
         state: present
 
+# Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.
     - name: start_tcpdump
       async: {{timeout}}
       poll: 0
       command: sudo /usr/sbin/tcpdump -G {{ dur_in_sec }} -W 1 -i {{ interface }} -s 0 -w {{ log_folder}}/{{ cap_file }} {{ filter }}
       register: async_tcpdump
 
+# Run My Trace Route utility on specify port/ip/count & protocol.
     - name: start_mtr 
-      command: sudo mtr {{}}
+      command: sudo mtr {{}} >> {{mtr_file}}
 
+# Run a stock standard ICMP ping
     - name: start_ping 
-      command: sudo mtr {{}}
+      command: sudo mtr {{}} >> {{ping_file}}
 
+# Check if remote port is open and currently in an active listening state using the telnet utility.
     - name: start_telnet
-      command: sudo telnet {{destination_ip}} {{destination_port}}
+      command: sudo telnet {{destination_ip}} {{destination_port}} >> {{telnet_file}}
 
+# Run a curl and get status response if a web URL was provided in the variable prompt scope.
+    - name: start_curl
+
+# Logical pause to wait for the tcpdump utility to finish before consolidating logs.
     - name: wait_for_tcpdump_to_finish
       ansible.builtin.async_status:
         jid: '{{ async_tcpdump.ansible_job_id }}'
       register: job_result
       until: job_result.finished
-      retries: 100
+      retries: 360
       delay: 10
 
+# Consolidate and ship the logs back to ansible tower for further analysis.
     - name: compress_capture_file
       command: sudo gzip {{cap_file}} chdir={{log_folder}}/
  
@@ -107,4 +123,7 @@
     - name: cleanup_logs
       command: sudo rm -rf {{log_folder}}/{{cap_file}}.gz
 
-      
+
+# /TODO/// 
+# 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.
+# 2) Add additional troubleshooting tools to expand the scope of debug to disks, CPU and Memory consumption.

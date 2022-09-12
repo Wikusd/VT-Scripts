@@ -42,7 +42,7 @@
       private: no
     
     - name: timeout
-      prompt: Specify the timeout in seconds for the connection attempt.
+      prompt: Specify the timeout in seconds for the tcpdump command to run.
       private: no
 
     - name: filter
@@ -64,18 +64,37 @@
     - name: ensure_package_state
       ansible.builtin.yum:
         name:
-          - nginx
-          - postgresql
-          - postgresql-server
+          - gzip
+          - tcpdump
+          - mtr
+          - ping
+          - telnet
+
         state: present
 
-        
-    - name: start_ping 
-      command: sudo ping {{}}
-
     - name: start_tcpdump
+      async: {{timeout}}
+      poll: 0
       command: sudo /usr/sbin/tcpdump -G {{ dur_in_sec }} -W 1 -i {{ interface }} -s 0 -w {{ log_folder}}/{{ cap_file }} {{ filter }}
- 
+      register: async_tcpdump
+
+    - name: start_mtr 
+      command: sudo mtr {{}}
+
+    - name: start_ping 
+      command: sudo mtr {{}}
+
+    - name: start_telnet
+      command: sudo telnet {{destination_ip}} {{destination_port}}
+
+    - name: wait_for_tcpdump_to_finish
+      ansible.builtin.async_status:
+        jid: '{{ async_tcpdump.ansible_job_id }}'
+      register: job_result
+      until: job_result.finished
+      retries: 100
+      delay: 10
+
     - name: compress_capture_file
       command: sudo gzip {{cap_file}} chdir={{log_folder}}/
  
@@ -87,3 +106,5 @@
 
     - name: cleanup_logs
       command: sudo rm -rf {{log_folder}}/{{cap_file}}.gz
+
+      

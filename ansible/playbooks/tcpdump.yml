@@ -27,10 +27,6 @@
     - name: source_ip
       prompt: Specify the source IP.
       private: no
-    
-    - name: source_port
-      prompt: Specify the source port.
-      private: no
 
     - name: destination_ip
       prompt: Specify the destination IP.
@@ -46,15 +42,6 @@
       default: "tcp"
       private: no
     
-    - name: timeout
-      prompt: Specify the timeout in seconds for the tcpdump command to run.
-      private: no
-
-    - name: filter
-      prompt: Please specify the tcpdump filter (e.g. host 10.10.10.10). For no filter just press enter
-      default: ""
-      private: no
-
     - name: log_folder
       prompt: Please specify the local log folder (location on remote server e.g. /var/tmp/)
       private: no
@@ -64,6 +51,8 @@
       private: no
       default: 60
   
+
+  # Start the task flow.
   tasks:
 
 #Ensures all required network tools are installed and enabled.
@@ -99,7 +88,16 @@
       command: sudo telnet {{destination_ip}} {{destination_port}} >> {{telnet_file}}
 
 # Run a curl and get status response if a web URL was provided in the variable prompt scope.
-    - name: start_curl
+    - name: Check if plan was applied
+      uri:
+        url: https://website.some.url.com/api/v1/clusters/elasticsearch
+        method: GET
+        validate_certs: no
+        status_code: [200,301,302]
+      register: result
+      until: result.status == 200
+      retries: 3
+      delay: 10
 
 # Logical pause to wait for the tcpdump utility to finish before consolidating logs.
     - name: wait_for_tcpdump_to_finish

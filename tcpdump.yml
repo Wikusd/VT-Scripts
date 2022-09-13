@@ -7,15 +7,7 @@
 
 # Ansible Playbook
 
-#VARIABLES
-  vars:
-      cap_file: packet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.pcap
-      mtr_file: mtr_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.log
-      ping_file: ping_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.log
-      telnet_file: telnet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.log
-
 # START TASKS
-  tasks:
 #Ensures all required network tools are installed and enabled.
     - name: ensure_package_state
       ansible.builtin.yum:

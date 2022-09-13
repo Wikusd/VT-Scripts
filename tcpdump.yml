@@ -19,14 +19,6 @@
     
 #Prompt for runtime configuration variables.
   vars_prompt:
-    - name: fqdn
-      prompt: Specify the fqdn if trying to reach a webservice.
-      default: ""
-      private: no
-
-    - name: source_ip
-      prompt: Specify the source IP.
-      private: no
 
     - name: destination_ip
       prompt: Specify the destination IP.
@@ -70,44 +62,31 @@
 
 # Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.
     - name: start_tcpdump
-      async: {{timeout}}
+      async: {{duration}}
       poll: 0
-      command: sudo /usr/sbin/tcpdump -G {{ dur_in_sec }} -W 1 -i {{ interface }} -s 0 -w {{ log_folder}}/{{ cap_file }} {{ filter }}
+      command: sudo tcpdump -w {{cap_file}} host {{destination_ip}}
       register: async_tcpdump
 
 # Run My Trace Route utility on specify port/ip/count & protocol.
     - name: start_mtr 
-      command: sudo mtr {{}} >> {{mtr_file}}
+      command: sudo mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> {{mtr_file}}
 
 # Run a stock standard ICMP ping
     - name: start_ping 
-      command: sudo mtr {{}} >> {{ping_file}}
+      command: sudo ping {{destination_ip}} -c {{count}} -D >> {{ping_file}}
 
-# Check if remote port is open and currently in an active listening state using the telnet utility.
+# Check if remote port is open and currently in an active listening state. Similiar to the telnet port check.
     - name: start_telnet
-      command: sudo telnet {{destination_ip}} {{destination_port}} >> {{telnet_file}}
-
-# Run a curl and get status response if a web URL was provided in the variable prompt scope.
-#Check web URL for status response. Response 200 OK indicates a succesful connection to the web endpoint.
-    - name: check_url_endpoint_status
-      uri:
-        url: https://website.some.url.com/api/v1/clusters/elasticsearch
-        method: GET
-        validate_certs: no
-        status_code: [200,301,302]
-      register: result
-      until: result.status == 200
-      retries: 3
-      delay: 10
+      command: ( sudo timeout 10 bash -c '</dev/tcp/{{destination_ip}}/{{destination_port}} && echo PORT OPEN || echo PORT CLOSED') 2>/dev/null
 
 # Logical pause to wait for the tcpdump utility to finish before consolidating logs.
-    - name: wait_for_tcpdump_to_finish
+    - name: tcpdump_sync_timeout
       ansible.builtin.async_status:
         jid: '{{ async_tcpdump.ansible_job_id }}'
       register: job_result
       until: job_result.finished
-      retries: 360
-      delay: 10
+      retries: {{duration}}
+      delay: 2
 
 # Consolidate and ship the logs back to ansible tower for further analysis.
     - name: compress_capture_file
@@ -121,7 +100,6 @@
 
     - name: cleanup_logs
       command: sudo rm -rf {{log_folder}}/{{cap_file}}.gz
-
 
 # ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.

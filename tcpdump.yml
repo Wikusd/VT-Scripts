@@ -11,7 +11,32 @@
   tasks:
 # START TASKS
 #Ensures all required network tools are installed and enabled.
-    - na
+    - name: ensure_package_state
+      ansible.builtin.yum:
+        name:
+          - gzip
+          - tcpdump
+          - mtr
+          - ping
+          - telnet
+          - curl
+          - tar
+
+        state: present
+
+# Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.
+    - name: start_tcpdump
+      async: '{{duration}}'
+      poll: 0
+      command: sudo tcpdump -w {{cap_file}} host {{destination_ip}}
+      register: async_tcpdump
+
+# Run My Trace Route utility on specify port/ip/count & protocol.
+    - name: start_mtr 
+      command: sudo mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> {{mtr_file}}
+
+# Run a stock standard ICMP ping
+    - name: start_ping 
       command: sudo ping {{destination_ip}} -c {{count}} -D >> {{ping_file}}
 
 # Check if remote port is open and currently in an active listening state. Similiar to the telnet port check.

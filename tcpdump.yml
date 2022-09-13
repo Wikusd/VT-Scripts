@@ -14,33 +14,6 @@
       mtr_file: mtr_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.log
       ping_file: ping_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.log
       telnet_file: telnet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.log
-    
-#Prompt for runtime configuration variables.
-  vars_prompt:
-
-    - name: destination_ip
-      prompt: Specify the destination IP.
-      default: ""
-      private: no
-
-    - name: destination_port
-      prompt: Specify the destination port.
-      private: no
-
-    - name: protocol
-      prompt: Please specify the protocol type(tcp/udp).
-      default: "tcp"
-      private: no
-    
-    - name: log_folder
-      prompt: Please specify the local log folder (location on remote server e.g. /var/tmp/)
-      private: no
-
-    - name: duration
-      prompt: Specify the duration in seconds for the time you want to capture a tcpdump.
-      private: no
-      default: 60
-  
 
 # START TASKS
   tasks:

@@ -7,15 +7,12 @@
 
 # Ansible Playbook
 
-#Specifying the host/inventory variables for the playbook to run on.
-- hosts: all
-
 #VARIABLES
   vars:
       cap_file: packet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.pcap
-      mtr_file: mtr_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
-      ping_file: ping_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
-      telnet_file: telnet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
+      mtr_file: mtr_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.log
+      ping_file: ping_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.log
+      telnet_file: telnet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.log
     
 #Prompt for runtime configuration variables.
   vars_prompt:
@@ -46,7 +43,6 @@
 
 # START TASKS
   tasks:
-
 #Ensures all required network tools are installed and enabled.
     - name: ensure_package_state
       ansible.builtin.yum:
@@ -57,6 +53,7 @@
           - ping
           - telnet
           - curl
+          - tar
 
         state: present
 
@@ -89,17 +86,17 @@
       delay: 2
 
 # Consolidate and ship the logs back to ansible tower for further analysis.
-    - name: compress_capture_file
-      command: sudo gzip {{cap_file}} chdir={{log_folder}}/
- 
+    - name: compress_captured_file
+      command: sudo tar -czvf ansible_tcp_logs.tar.gz {{cap_file}} {{mtr_file}} {{ping_file}} {{telnet_file}} 
+      
     - name: change_file_permission
-      command: sudo chmod 755 {{log_folder}}/{{cap_file}}.gz
+      command: sudo chmod 777 ansible_tcp_logs.tar.gz
 
     - name: retrieve_logs
-      fetch: src={{log_folder}}/{{cap_file}}.gz dest=/export/tmp/ansible/ flat=yes
+      fetch: src=ansible_tcp_logs.tar.gz dest=/export/tmp/ansible/ flat=yes
 
     - name: cleanup_logs
-      command: sudo rm -rf {{log_folder}}/{{cap_file}}.gz
+      command: sudo rm -rf ansible_tcp_logs.tar.gz
 
 # ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.

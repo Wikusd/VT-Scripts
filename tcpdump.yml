@@ -59,7 +59,7 @@
 
 # Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.
     - name: start_tcpdump
-      async: {{duration}}
+      async: 60
       poll: 0
       command: sudo tcpdump -w {{cap_file}} host {{destination_ip}}
       register: async_tcpdump

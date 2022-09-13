@@ -12,9 +12,9 @@
 
 # Run My Trace Route utility on specify port/ip/count & protocol.
     - name: start_mtr 
-      command: sudo mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> {{mtr_file}}
+      command: sudo mtr 8.8.8.8 -C 5 --tcp --report >> test2.log
 
 # Run a stock standard ICMP ping
     - name: start_ping 
-      command: sudo ping {{destination_ip}} -c {{count}} -D >> {{ping_file}}
+      command: sudo ping 8.8.8.8 -c 5 -D >> test.log
 

@@ -21,7 +21,6 @@
           - telnet
           - curl
           - tar
-
         state: present
 
 # Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.

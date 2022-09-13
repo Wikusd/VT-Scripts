@@ -1,0 +1,20 @@
+# Velocity Trade
+# Network Debug Script Version: 1
+# First Release Date: 2022-09-09
+# Last Modified Date: 2022-09-15
+# Author: Wikus Du Plessis
+# Description: Run network debug tests on the remote server and retrieve logs, enable sharing of network debugging information with third parties.
+
+# Ansible Playbook
+- name: Ansible_Playbook_Test
+  hosts: all
+  tasks:
+
+# Run My Trace Route utility on specify port/ip/count & protocol.
+    - name: start_mtr 
+      command: sudo mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> {{mtr_file}}
+
+# Run a stock standard ICMP ping
+    - name: start_ping 
+      command: sudo ping {{destination_ip}} -c {{count}} -D >> {{ping_file}}
+

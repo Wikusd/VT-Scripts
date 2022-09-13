@@ -6,7 +6,9 @@
 # Description: Run network debug tests on the remote server and retrieve logs, enable sharing of network debugging information with third parties.
 
 # Ansible Playbook
-
+- name: Ansible_Playbook_TCPDump
+  hosts: all
+  tasks:
 # START TASKS
 #Ensures all required network tools are installed and enabled.
     - name: ensure_package_state

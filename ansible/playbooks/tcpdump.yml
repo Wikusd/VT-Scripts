@@ -10,14 +10,14 @@
 #Specifying the host/inventory variables for the playbook to run on.
 - hosts: all
 
-#Initiate the different file names for logs
+#VARIABLES
   vars:
       cap_file: packet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.pcap
       mtr_file: mtr_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
       ping_file: ping_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
       telnet_file: telnet_capture_{{ ansible_hostname }}_{{ ansible_date_time['epoch'] }}.txt
     
-#Prompt for runtime configurations.
+#Prompt for runtime configuration variables.
   vars_prompt:
     - name: fqdn
       prompt: Specify the fqdn if trying to reach a webservice.
@@ -52,7 +52,7 @@
       default: 60
   
 
-  # Start the task flow.
+# START TASKS
   tasks:
 
 #Ensures all required network tools are installed and enabled.
@@ -88,7 +88,8 @@
       command: sudo telnet {{destination_ip}} {{destination_port}} >> {{telnet_file}}
 
 # Run a curl and get status response if a web URL was provided in the variable prompt scope.
-    - name: Check if plan was applied
+#Check web URL for status response. Response 200 OK indicates a succesful connection to the web endpoint.
+    - name: check_url_endpoint_status
       uri:
         url: https://website.some.url.com/api/v1/clusters/elasticsearch
         method: GET

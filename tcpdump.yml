@@ -59,7 +59,7 @@
 
 # Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.
     - name: start_tcpdump
-      async: 60
+      async: '{{duration}}'
       poll: 0
       command: sudo tcpdump -w {{cap_file}} host {{destination_ip}}
       register: async_tcpdump
@@ -82,7 +82,7 @@
         jid: '{{ async_tcpdump.ansible_job_id }}'
       register: job_result
       until: job_result.finished
-      retries: {{duration}}
+      retries: '{{duration}}'
       delay: 2
 
 # Consolidate and ship the logs back to ansible tower for further analysis.

@@ -31,3 +31,7 @@
       command: ( sudo timeout 5 bash -c '</dev/tcp/{{destination_ip}}/{{destination_port}} && echo PORT OPEN || echo PORT CLOSED') 2>/dev/null
 
   
+# ///TODO/// 
+# 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.
+# 2) Add additional troubleshooting tools to expand the scope of debug to disks, CPU and Memory consumption. Alternatively, create seperate jobs consisting of the following.
+#    Can be consolidated into a single work-flow for modular deployment and execution.

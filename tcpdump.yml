@@ -32,11 +32,11 @@
 
 # Run My Trace Route utility on specify port/ip/count & protocol.
     - name: start_mtr 
-      command: sudo mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> {{mtr_file}}
+      command: sudo mtr {{destination_ip}} -C {{count}} --{{protocol}} --report
 
 # Run a stock standard ICMP ping
     - name: start_ping 
-      command: sudo ping {{destination_ip}} -c {{count}} -D >> {{ping_file}}
+      command: sudo ping {{destination_ip}} -c {{count}} -D
 
 # Check if remote port is open and currently in an active listening state. Similiar to the telnet port check.
     - name: start_telnet

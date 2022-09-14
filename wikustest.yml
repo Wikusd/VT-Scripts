@@ -29,5 +29,5 @@
         jid: '{{ async_tcpdump.ansible_job_id }}'
       register: job_result
       until: job_result.finished
-      retries: 10
-      delay: 10
+      retries: '{{duration}}'
+      delay: 5

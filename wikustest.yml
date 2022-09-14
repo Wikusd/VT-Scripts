@@ -14,7 +14,7 @@
     - name: start_tcpdump
       async: '{{duration}}'
       poll: 0
-      command: sudo tcpdump -G {{duration}} -W 1 -w {{cap_file}} host {{destination_ip}}
+      command: sudo tcpdump -G {{duration}} -W 1 -w {{cap_file}}.pcap host {{destination_ip}}
       register: async_tcpdump
 
 # Run a stock standard ICMP ping
@@ -22,12 +22,12 @@
       command: sudo ping {{destination_ip}} -c {{count}} -D
       register: ping_result
 
+# Run My Trace Route utility on specify port/ip/count & protocol.
+    - name: start_mtr 
+      command: sudo mtr {{destination_ip}} -C {{count}} --{{protocol}} --report
 
-# Logical pause to wait for the tcpdump utility to finish before consolidating logs.
-    - name: tcpdump_sync_timeout
-      ansible.builtin.async_status:
-        jid: '{{ async_tcpdump.ansible_job_id }}'
-      register: job_result
-      until: job_result.finished
-      retries: '{{duration}}'
-      delay: 5
+# Check if remote port is open and currently in an active listening state. Similiar to the telnet port check.
+    - name: start_telnet
+      command: ( sudo timeout 5 bash -c '</dev/tcp/{{destination_ip}}/{{destination_port}} && echo PORT OPEN || echo PORT CLOSED') 2>/dev/null
+
+  

@@ -13,4 +13,6 @@
 # Run a stock standard ICMP ping
     - name: start_ping 
       command: ping 8.8.8.8 -c 5 -D 
+      register: ping_result
+    - local_action: copy content= dest=file
 

@@ -14,5 +14,5 @@
     - name: start_ping 
       command: sudo ping {{destination_ip}} -c {{count}} -D
       register: ping_result
-    - local_action: copy content= dest=/home/centos/file
+    - local_action: copy content= dest=/home/wikusdp/filetest
 

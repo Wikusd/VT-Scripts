@@ -12,5 +12,5 @@
 
 # Run a stock standard ICMP ping
     - name: start_ping 
-      command: ping 8.8.8.8 -c 5 -D >> test.log
+      command: ping 8.8.8.8 -c 5 -D 
 

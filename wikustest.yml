@@ -10,9 +10,24 @@
   hosts: all
   tasks:
 
+# Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.
+    - name: start_tcpdump
+      async: '{{duration}}'
+      poll: 0
+      command: sudo tcpdump -w {{cap_file}} host {{destination_ip}}
+      register: async_tcpdump
+
 # Run a stock standard ICMP ping
     - name: start_ping 
       command: sudo ping {{destination_ip}} -c {{count}} -D
       register: ping_result
-    - local_action: copy content= dest=/home/wikusdp/filetest
 
+
+# Logical pause to wait for the tcpdump utility to finish before consolidating logs.
+    - name: tcpdump_sync_timeout
+      ansible.builtin.async_status:
+        jid: '{{ async_tcpdump.ansible_job_id }}'
+      register: job_result
+      until: job_result.finished
+      retries: 10
+      delay: 10

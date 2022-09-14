@@ -14,7 +14,7 @@
     - name: start_tcpdump
       async: '{{duration}}'
       poll: 0
-      command: sudo tcpdump -w {{cap_file}} host {{destination_ip}}
+      command: sudo tcpdump -G {{duration}} -W 1 -w {{cap_file}} host {{destination_ip}}
       register: async_tcpdump
 
 # Run a stock standard ICMP ping

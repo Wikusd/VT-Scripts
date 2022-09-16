@@ -42,6 +42,9 @@
     - name: tcpdump_output
       shell: cat {{cap_file}};
 
+    - name: probe_output
+      shell: cat probe.{{cap_file}};
+
     - name: compress_captured_file
       command: sudo tar -czvf ansible_tcp_logs{{cap_file}}.tar.gz {{cap_file}} probe.{{cap_file}}
       
@@ -50,9 +53,6 @@
 
     - name: retrieve_logs
       fetch: src=ansible_tcp_logs.tar.gz dest=/export/tmp/ansible/ flat=yes
-
-    - name: probe_output
-      shell: cat probe.{{cap_file}};
 
     - name: cleanup
       shell: rm -f {{cap_file}}; rm -f probe.{{cap_file}}; rm -f ansible_tcp_logs{{cap_file}}.tar.gz;

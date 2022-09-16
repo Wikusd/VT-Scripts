@@ -54,14 +54,14 @@
     - name: retrieve_logs
       fetch: src=ansible_tcp_logs{{cap_file}}.tar.gz dest=/export/tmp/ansible/ flat=yes
 
-- name: cleanup_logs
-  file:
-    path: "{{item}}"
-    state: absent
-  with_items:
-  - "ansible_tcp_logs{{cap_file}}.tar.gz"
-  - "~/{{cap_file}}.pcap"
-  - "~/probe.{{cap_file}}"
+    - name: cleanup_logs
+      file:
+        path: "{{item}}"
+        state: absent
+      with_items:
+      - "ansible_tcp_logs{{cap_file}}.tar.gz"
+      - "~/{{cap_file}}.pcap"
+      - "~/probe.{{cap_file}}"
 
 # ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.

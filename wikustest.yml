@@ -30,10 +30,15 @@
       failed_when: mtrrc.rc not in [ 0, 1 ]
 
 # Check if remote port is open and currently in an active listening state. Similiar to the telnet port check.
-    - name: start_telnet
-      command: ( timeout 5 bash -c '</dev/tcp/{{destination_ip}}/{{destination_port}} && echo PORT OPEN || echo PORT CLOSED') 2>/dev/null
+    - name: Check all port numbers are accessible from the current host
+      wait_for:
+        host: "{{destination_ip}}"
+        port: "{{destination_port}}"
+        state: started         # Port should be open
+        delay: 0               # No wait before first check (sec)
+        timeout: 3             # Stop checking after timeout (sec)
+      ignore_errors: yes
 
-  
 # ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.
 # 2) Add additional troubleshooting tools to expand the scope of debug to disks, CPU and Memory consumption. Alternatively, create seperate jobs consisting of the following.

@@ -14,7 +14,7 @@
     - name: starting_tcpdump
       async: '{{duration}}'
       poll: 0
-      command: ping tcpdump -G {{duration}} -W 1 -w {{cap_file}}.pcap host {{destination_ip}}
+      command: tcpdump -G {{duration}} -W 1 -w {{cap_file}}.pcap host {{destination_ip}}
       register: async_tcpdump
 
 # Run a stock standard ICMP ping
@@ -24,7 +24,7 @@
 
 # Run My Trace Route utility on specify port/ip/count & protocol.
     - name: starting_mtr 
-      shell: mtr {{destination_ip}} -C {{count}} --{{protocol}} --report > probe.{{cap_file}}
+      shell: mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> probe.{{cap_file}}
       ignore_errors: true
       register: mtrrc
       failed_when: mtrrc.rc not in [ 0, 1 ]
@@ -42,11 +42,20 @@
     - name: tcpdump_output
       shell: cat {{cap_file}};
 
+    - name: compress_captured_file
+      command: sudo tar -czvf ansible_tcp_logs{{cap_file}}.tar.gz {{cap_file}} probe.{{cap_file}}
+      
+    - name: change_file_permission
+      command: sudo chmod 777 ansible_tcp_logs.tar.gz
+
+    - name: retrieve_logs
+      fetch: src=ansible_tcp_logs.tar.gz dest=/export/tmp/ansible/ flat=yes
+
     - name: probe_output
       shell: cat probe.{{cap_file}};
 
     - name: cleanup
-      shell: rm -f {{cap_file}}; rm -f probe.{{cap_file}}
+      shell: rm -f {{cap_file}}; rm -f probe.{{cap_file}}; rm -f ansible_tcp_logs{{cap_file}}.tar.gz;
 
 # ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.

@@ -26,6 +26,8 @@
     - name: start_mtr 
       command: mtr {{destination_ip}} -C {{count}} --{{protocol}} --report
       ignore_errors: true
+      register: mtrrc
+      failed_when: “mtrrc.rc not in [ 0, 1 ]”
 
 # Check if remote port is open and currently in an active listening state. Similiar to the telnet port check.
     - name: start_telnet

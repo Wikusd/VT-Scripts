@@ -19,12 +19,12 @@
 
 # Run a stock standard ICMP ping
     - name: starting_ping 
-      shell: ping {{destination_ip}} -c {{count}} -D > probe.{{cap_file}}
+      shell: ping {{destination_ip}} -c {{count}} -D > ~/probe.{{cap_file}}
       register: ping_result
 
 # Run My Trace Route utility on specify port/ip/count & protocol.
     - name: starting_mtr 
-      shell: mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> probe.{{cap_file}}
+      shell: mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> ~/probe.{{cap_file}}
       ignore_errors: true
       register: mtrrc
       failed_when: mtrrc.rc not in [ 0, 1 ]
@@ -39,14 +39,11 @@
         timeout: 5             # Stop checking after timeout (sec)
       ignore_errors: yes
 
-    - name: tcpdump_output
-      shell: cat {{cap_file}};
-
     - name: probe_output
-      shell: cat probe.{{cap_file}};
+      shell: cat ~/probe.{{cap_file}};
 
     - name: compress_captured_file
-      command: sudo tar -czvf ansible_tcp_logs{{cap_file}}.tar.gz {{cap_file}} probe.{{cap_file}}
+      command: sudo tar -czvf ansible_tcp_logs{{cap_file}}.tar.gz {{cap_file}} ~/probe.{{cap_file}}
       
     - name: change_file_permission
       command: sudo chmod 777 ansible_tcp_logs.tar.gz

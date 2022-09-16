@@ -11,33 +11,42 @@
   tasks:
 
 # Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.
-    - name: start_tcpdump
+    - name: starting_tcpdump
       async: '{{duration}}'
       poll: 0
       command: ping tcpdump -G {{duration}} -W 1 -w {{cap_file}}.pcap host {{destination_ip}}
       register: async_tcpdump
 
 # Run a stock standard ICMP ping
-    - name: start_ping 
-      command: ping {{destination_ip}} -c {{count}} -D
+    - name: starting_ping 
+      shell: ping {{destination_ip}} -c {{count}} -D > probe.{{cap_file}}
       register: ping_result
 
 # Run My Trace Route utility on specify port/ip/count & protocol.
-    - name: start_mtr 
-      shell: mtr {{destination_ip}} -C {{count}} --{{protocol}} --report
+    - name: starting_mtr 
+      shell: mtr {{destination_ip}} -C {{count}} --{{protocol}} --report > probe.{{cap_file}}
       ignore_errors: true
       register: mtrrc
       failed_when: mtrrc.rc not in [ 0, 1 ]
 
 # Check if remote port is open and currently in an active listening state. Similiar to the telnet port check.
-    - name: Check all port numbers are accessible from the current host
+    - name: checking_remote_port
       wait_for:
         host: "{{destination_ip}}"
         port: "{{destination_port}}"
         state: started         # Port should be open
         delay: 0               # No wait before first check (sec)
-        timeout: 3             # Stop checking after timeout (sec)
+        timeout: 5             # Stop checking after timeout (sec)
       ignore_errors: yes
+
+    - name: tcpdump_output
+      shell: cat {{cap_file}};
+
+    - name: probe_output
+      shell: cat probe.{{cap_file}};
+
+    - name: cleanup
+      shell: rm -f {{cap_file}}; rm -f probe.{{cap_file}}
 
 # ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.

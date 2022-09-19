@@ -51,7 +51,7 @@
         mode: '0777'
 
     - name: retrieve_logs
-      fetch: src=ansible_tcp_logs{{cap_file}}.tar.gz dest=/export/tmp/ansible/ flat=yes
+      fetch: src=ansible_tcp_logs{{cap_file}}.tar.gz dest=/home/wikusdp/ flat=yes
 
     - name: cleanup_logs
       file:

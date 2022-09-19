@@ -65,7 +65,7 @@
       - "ansible_tcp_logs{{cap_file}}.tar.gz"
       - "~/{{cap_file}}.pcap"
       - "~/probe.{{cap_file}}"
-      when: "{{cleanup_logs}} == true"
+      when: "cleanup_logs == true"
 
 # ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.

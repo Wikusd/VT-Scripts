@@ -7,7 +7,7 @@
 
 # Ansible Playbook
 - name: Ansible_Playbook_Test
-  hosts: {{source_host}}    #The remote host to execute this runbook will be populated by the Survey. This is to avoid acidental runs from inventory. 
+  hosts: "{{source_host}}"    #The remote host to execute this runbook will be populated by the Survey. This is to avoid acidental runs from inventory. 
   tasks:
 
 # Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.

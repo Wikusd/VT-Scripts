@@ -3,7 +3,7 @@
 # First Release Date: 2022-09-09
 # Last Modified Date: 2022-09-16
 # Author: Wikus Du Plessis
-# Description: Run network probes to destinations on the remote server and retrieve logs.
+# Description: Run network probes to destinations on the remote server and keep logs.
 
 # Ansible Playbook
 - name: Ansible_Playbook_Test
@@ -45,6 +45,7 @@
 # Compress the output logs into a tarred gunzip for a single file ship to the destination log server.
     - name: compress_captured_file
       command: tar -czvf ansible_tcp_logs{{cap_file}}.tar.gz ~/{{cap_file}}.pcap ~/probe.{{cap_file}}
+        warn: false
 
 # Change file privs to accomdate shipping between different users/groups.
     - name: change_file_permission
@@ -60,12 +61,12 @@
     - name: cleanup_logs
       file:
         path: "{{item}}"
-        state: absent     #Ensure the items are in an absent (removed) state.
+        state: absent     # Ensure the items are in an absent (removed) state.
       with_items:             
       - "ansible_tcp_logs{{cap_file}}.tar.gz"
       - "~/{{cap_file}}.pcap"
       - "~/probe.{{cap_file}}"
-      when: "cleanup_logs == true"
+      when: "cleanup_logs == remove" # Condition to only cleanup logs on the remote host if the user specified. Keep it on the remote system by default.
 
 # ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.

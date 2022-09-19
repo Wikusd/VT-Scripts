@@ -39,6 +39,13 @@
         timeout: 5             # Stop checking after timeout (sec)
       ignore_errors: yes
 
+    - name: probe_output
+      shell: cat ~/probe.{{cap_file}};
+
+    - name: compress_captured_file
+      command: tar -czvf ansible_tcp_logs{{cap_file}}.tar.gz ~/{{cap_file}}.pcap ~/probe.{{cap_file}}
+      warn: false
+      
 
 
 # ///TODO/// 

@@ -45,7 +45,6 @@
 # Compress the output logs into a tarred gunzip for a single file ship to the destination log server.
     - name: compress_captured_file
       command: tar -czvf ansible_tcp_logs{{cap_file}}.tar.gz ~/{{cap_file}}.pcap ~/probe.{{cap_file}}
-        warn: false
 
 # Change file privs to accomdate shipping between different users/groups.
     - name: change_file_permission

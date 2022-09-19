@@ -65,7 +65,7 @@
       - "ansible_tcp_logs{{cap_file}}.tar.gz"
       - "~/{{cap_file}}.pcap"
       - "~/probe.{{cap_file}}"
-      when: cleanup_dump|bool == true  # Condition to check if we want to cleanup logs. Alternatively leave them on the host file under the authenticated user's home directory.
+        # Condition to check if we want to cleanup logs. Alternatively leave them on the host file under the authenticated user's home directory.
        
 
 # ///TODO/// 

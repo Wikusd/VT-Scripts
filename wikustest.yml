@@ -54,7 +54,7 @@
 
 # Fetch the logs and save them on the AWX server using the builtin ansible fetch module.
     - name: retrieve_logs
-      fetch: src=ansible_tcp_logs{{cap_file}}.tar.gz dest=/home/wikusdp/ flat=yes
+      fetch: src=ansible_tcp_logs{{cap_file}}.tar.gz dest=~/. flat=yes
 
 # Remove the temp files on the remote host.
     - name: cleanup_logs
@@ -65,7 +65,7 @@
       - "ansible_tcp_logs{{cap_file}}.tar.gz"
       - "~/{{cap_file}}.pcap"
       - "~/probe.{{cap_file}}"
-       
+      when: "{{cleanup_logs}} == true"
 
 # ///TODO/// 
 # 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.

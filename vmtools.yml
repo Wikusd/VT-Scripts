@@ -1,0 +1,34 @@
+# Velocity Trade
+# Install VM-Tools Version: 1
+# First Release Date: 2022-09-09
+# Last Modified Date: 2022-09-16
+# Author: Wikus Du Plessis
+# Description: Install the latest version of VM-Tools
+
+# Ansible Playbook
+- name: vmtools
+  hosts: "{{source_host}}"    #The remote host to execute this runbook will be populated by the Survey. This is to avoid acidental runs from inventory. 
+  tasks:
+
+# Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.
+    - name: starting_tcpdump
+      async: '{{duration}}'               # Run the tcpdump in the background for x seconds.
+      poll: 0
+      command: tcpdump -G {{duration}} -W 1 -w ~/{{cap_file}}.pcap host {{destination_ip}}    
+      register: async_tcpdump             # Register asynx command to sync running state later.
+
+# Run a stock standard ICMP ping
+    - name: starting_ping 
+      shell: ping {{destination_ip}} -c {{count}} -D > ~/probe.{{cap_file}}
+      register: ping_result
+
+# Run My Trace Route utility on specify port/ip/count & protocol.
+    - name: starting_mtr 
+      shell: mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> ~/probe.{{cap_file}}
+      register: mtrrc
+      failed_when: mtrrc.rc not in [ 0, 1 ]   # MTR fails with return code 1 if no UDP connectino is found. This is a false positive as we do not always need UDP for TCP checks. 
+
+# ///TODO/// 
+# 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.
+# 2) Add additional troubleshooting tools to expand the scope of debug to disks, CPU and Memory consumption. Alternatively, create seperate jobs consisting of the following.
+#    Can then be consolidated into a single work-flow for modular execution.

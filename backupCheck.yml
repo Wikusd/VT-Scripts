@@ -1,0 +1,73 @@
+# Velocity Trade
+# Network Debug Script Version: 1
+# First Release Date: 2022-09-09
+# Last Modified Date: 2022-09-16
+# Author: Wikus Du Plessis
+# Description: Run network probes to destinations on the remote server and keep logs.
+
+# Ansible Playbook
+- name: Ansible_Playbook_Test
+  hosts: "{{source_host}}"    #The remote host to execute this runbook will be populated by the Survey. This is to avoid acidental runs from inventory. 
+  tasks:
+
+# Start the tcpdump service with filter in an async state. The dump will run in the background while we do other high-level network traffic tests.
+    - name: starting_tcpdump
+      async: '{{duration}}'               # Run the tcpdump in the background for x seconds.
+      poll: 0
+      command: tcpdump -G {{duration}} -W 1 -w ~/{{cap_file}}.pcap host {{destination_ip}}    
+      register: async_tcpdump             # Register asynx command to sync running state later.
+
+# Run a stock standard ICMP ping
+    - name: starting_ping 
+      shell: ping {{destination_ip}} -c {{count}} -D > ~/probe.{{cap_file}}
+      register: ping_result
+
+# Run My Trace Route utility on specify port/ip/count & protocol.
+    - name: starting_mtr 
+      shell: mtr {{destination_ip}} -C {{count}} --{{protocol}} --report >> ~/probe.{{cap_file}}
+      register: mtrrc
+      failed_when: mtrrc.rc not in [ 0, 1 ]   # MTR fails with return code 1 if no UDP connectino is found. This is a false positive as we do not always need UDP for TCP checks. 
+
+# Check if remote port is open and currently in an active listening state. Similiar to the telnet port check.
+    - name: checking_remote_port
+      wait_for:
+        host: "{{destination_ip}}"
+        port: "{{destination_port}}"
+        state: started         # Port should be started/open
+        delay: 0               # No wait before first check (sec)
+        timeout: 5             # Stop checking after timeout (sec)
+      ignore_errors: yes
+
+# Concatinate the output of the mtr and ping tasks for easy adhoc viewing in Ansible AWX
+    - name: probe_output
+      shell: cat ~/probe.{{cap_file}};
+
+# Compress the output logs into a tarred gunzip for a single file ship to the destination log server.
+    - name: compress_captured_file
+      command: tar -czvf ansible_tcp_logs{{cap_file}}.tar.gz ~/{{cap_file}}.pcap ~/probe.{{cap_file}}
+
+# Change file privs to accomdate shipping between different users/groups.
+    - name: change_file_permission
+      file:
+        path: ansible_tcp_logs{{cap_file}}.tar.gz
+        mode: '0777'
+
+# Fetch the logs and save them on the AWX server using the builtin ansible fetch module.
+    - name: retrieve_logs
+      fetch: src=ansible_tcp_logs{{cap_file}}.tar.gz dest=tcpdump/logs/ flat=yes
+
+# Remove the temp files on the remote host.
+    - name: cleanup_logs
+      file:
+        path: "{{item}}"
+        state: absent     # Ensure the items are in an absent (removed) state.
+      with_items:             
+      - "ansible_tcp_logs{{cap_file}}.tar.gz"
+      - "~/{{cap_file}}.pcap"
+      - "~/probe.{{cap_file}}"
+      when: "cleanup_logs == remove" # Condition to only cleanup logs on the remote host if the user specified. Keep it on the remote system by default.
+
+# ///TODO/// 
+# 1) Send email with attached log files to specified email addresses. Will require SMTP authentication.
+# 2) Add additional troubleshooting tools to expand the scope of debug to disks, CPU and Memory consumption. Alternatively, create seperate jobs consisting of the following.
+#    Can then be consolidated into a single work-flow for modular execution.

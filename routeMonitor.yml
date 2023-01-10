@@ -20,4 +20,3 @@
       register: results
     - debug:
         msg: "{{results}}"
-        var: results.json.values

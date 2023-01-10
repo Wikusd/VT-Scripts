@@ -19,5 +19,4 @@
         method: GET
       register: results
     - debug:
-        var: results.json.value
-
+        var: results.json.values

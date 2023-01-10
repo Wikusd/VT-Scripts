@@ -70,5 +70,9 @@
     - debug:
         var: results2.json.value
 
-# 
+# Compare the updated results and fail if nothing has changed on the api settings.
+
+    - name: Compare the results of the two API calls
+      assert:
+        that: first_result.json != second_result.json
 

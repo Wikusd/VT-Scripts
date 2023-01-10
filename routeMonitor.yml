@@ -19,5 +19,5 @@
         method: GET
       register: results
     - debug:
-        msg: "{{results.json.values}}"
-        
+        msg: "{{results}}"
+        var: results.json.values

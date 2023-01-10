@@ -1,0 +1,74 @@
+############################
+# Route traffic monitoring #
+############################
+
+- name: API Route Monitoring
+  become: false
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - debug:
+        msg: “Starting Route Monitoring API call”
+
+
+# Get current configuration settings to establish baseline for changes.
+
+    - name: Collect current configuration settings
+      uri:
+        url: https://pt3proxy.devapi.tradedesk.co.za/api/v1/PTSettings
+        method: GET
+      register: results
+    - debug:
+        var: results.json.value
+
+
+# Pull configuration settings from git repositories.
+
+    - name: Pull New config
+      ansible.builtin.git:
+        repo: ssh://git@code.vtfs.cloud:7999/wvd/dev-haproxy.git
+        dest: /etc/haproxy/
+        force: yes
+      register: git
+      become: false
+
+# ReadJsonFile pulled from previous task.
+
+    - name: ReadJsonfile
+      hosts: localhost
+      tasks:
+        - name: Display the JSON file content
+          shell: cat config.json
+          register: result
+
+          - name: save the Json data to a Variable as a Fact
+            set_fact:
+            jsondata: "{{ result.stdout | from_json }}"
+
+# Set configuration on Service Monitor via POST API request.
+
+- name: Post new configuration settings.
+  uri:
+    url: https://auth.example.com/oauth/access_token
+    method: POST
+    body_format: json
+    body: "{{ ansible_facts['jsondata'] }}"
+    return_content: yes
+  register: api_response
+
+# Get the updated configuration settings.
+
+    - name: Configuration settings after API change.
+      uri:
+        url: https://pt3proxy.devapi.tradedesk.co.za/api/v1/PTSettings
+        method: GET
+      register: results2
+    - debug:
+        var: results2.json.value
+
+# Compare the updated results and fail if nothing has changed on the api settings.
+
+    - name: Compare the results of the two API calls
+      assert:
+        that: first_result.json != second_result.json
+
